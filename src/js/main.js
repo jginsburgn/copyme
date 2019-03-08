@@ -1,51 +1,64 @@
 let renderer = undefined;
 let scene = undefined;
 let camera = undefined;
+let absoluteAccumulatedTime = 0;
 
 $(function () {
   const { width, height } = getWidthAndHeight();
-  camera = new THREE.PerspectiveCamera(100, width / height, 0.1, 1000);
-  camera.position.set(0, 0, 20);
+  const ratio = width / height;
+
+  camera = new THREE.PerspectiveCamera(17, ratio, 0.01, 10000);
+  camera.position.set(0, 0, 30);
   camera.lookAt(0, 0, 0);
 
+  const controls = new THREE.OrbitControls( camera );
+  controls.update();
+  
   renderer = new THREE.WebGLRenderer();
-  updateRendererSize();
+  updateViewport();
   $("#canvas-container").append(renderer.domElement);
 
   scene = new THREE.Scene();
 
-  const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  const geometry = new THREE.SphereGeometry(1, 10, 10);
-  sphere = new THREE.Mesh(geometry, material);
-  scene.add(sphere);
+  sun = new Astro(1, 10, 0, 0, "src/textures/selena.jpg", false, true);
+  const moon = new Astro(0.5, 2, 5, 5, "src/textures/selena.jpg", true);
+  const a = new Astro(0.3, 3, 2, 2, "src/textures/selena.jpg");
+  const b = new Astro(0.1, -1, 1, 1, "src/textures/selena.jpg");
+  a.addOrbiter(b);
+  moon.addOrbiter(a);
+  sun.addOrbiter(moon);
 
-  const light = new THREE.AmbientLight(0xffffff);
-  scene.add(light);
+  scene.add(sun);
 
   renderer.setAnimationLoop(animationLoop)
 });
 
-function animationLoop() {
-  const direction = new THREE.Vector3();
-  camera.getWorldDirection(direction);
-  sphere.position.set(sphere.position.x + 0.1, sphere.position.y + 0.1, 0);
+function animationLoop(accumulatedTime) {
+  const timeDifference = accumulatedTime - absoluteAccumulatedTime;
+  sun.position.set(sun.position.x + 0.01, 0, 0);
+  sun.animationLoop(absoluteAccumulatedTime, timeDifference);
+  absoluteAccumulatedTime = accumulatedTime;
   renderer.render(scene, camera);
 }
 
 function getWidthAndHeight() {
-  const width = $(window).width();
-  const height = $(window).height();
+  const width = $("#canvas-container").width();
+  const height = $("#canvas-container").height();
   return { width, height };
 }
 
-function updateRendererSize() {
+function updateViewport() {
+  // A trial-and-error-deduced multiplier to achieve a FOV for an average user in front of a computer screen
+  const ANGLE_MULTIPLIER = 2.25E-2;
   const { width, height } = getWidthAndHeight();
+  const fov = height * ANGLE_MULTIPLIER;
   camera.aspect = width / height;
+  camera.fov = fov;
   camera.updateProjectionMatrix();
   renderer.setSize(width, height);
 }
 
 $(window).on(
   "resize",
-  updateRendererSize
+  updateViewport
 );
