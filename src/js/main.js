@@ -8,25 +8,41 @@ $(function () {
   const { width, height } = getWidthAndHeight();
   const ratio = width / height;
 
-  camera = new THREE.PerspectiveCamera(17, ratio, 0.01, 10000);
-  camera.position.set(0, 45, 500);
-  camera.lookAt(0, 45, 0);
+  camera = new THREE.PerspectiveCamera(17, ratio, 1, 2000);
 
   // const controls = new THREE.OrbitControls(camera);
   // controls.update();
+
+  camera.position.set(0, 45, 500);
+  camera.lookAt(0, 45, 0);
 
   renderer = new THREE.WebGLRenderer();
   updateViewport();
   $("#canvas-container").append(renderer.domElement);
 
   scene = new THREE.Scene();
+  scene.background = new THREE.Color( 0xa0a0a0 );
+  scene.fog = new THREE.Fog( 0xa0a0a0, 200, 1000 );
 
-  light = new THREE.HemisphereLight(0xffffff, 0x444444, 10);
-  light.position.set(0, 100, 0);
-  scene.add(light);
+  light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+  light.position.set( 0, 200, 0 );
+  scene.add( light );
+
+  light = new THREE.DirectionalLight( 0xffffff );
+  light.position.set( 0, 200, 100 );
+  light.castShadow = true;
+  light.shadow.camera.top = 180;
+  light.shadow.camera.bottom = - 100;
+  light.shadow.camera.left = - 120;
+  light.shadow.camera.right = 120;
+  scene.add( light );
+
+  // light = new THREE.HemisphereLight(0xffffff, 0x444444, 10);
+  // light.position.set(0, 100, 0);
+  // scene.add(light);
 
   var loader = new THREE.FBXLoader();
-  loader.load('src/assets/robot/robot.fbx', function (object) {
+  loader.load('src/assets/samba.fbx', function (object) {
     // mixer = new THREE.AnimationMixer(object);
     // var action = mixer.clipAction(object.animations[0]);
     // action.play();
@@ -37,36 +53,26 @@ $(function () {
     //   }
     // });
     robot = object;
-    console.log(object);
+    // console.log(object);
     object.scale.copy(new THREE.Vector3(0.5, 0.5, 0.5));
-    var texture = new THREE.TextureLoader().load('src/assets/robot/textures/robot_AlbedoTransparency.png');
-    object.traverse(function (child) {
-      if (child instanceof THREE.Mesh) {
-        for (let m of child.material) {
-          m.map = texture
-          m.needsUpdate = true;
-        }
-      }
-    });
-    var helper = new THREE.SkeletonHelper(object);
-    helper.material.linewidth = 3;
-    scene.add(helper);
+    // var texture = new THREE.TextureLoader().load('src/assets/robot/textures/robot_AlbedoTransparency.png');
+    // object.traverse(function (child) {
+    //   if (child instanceof THREE.Mesh) {
+    //     for (let m of child.material) {
+    //       m.map = texture
+    //       m.needsUpdate = true;
+    //     }
+    //   }
+    // });
+    // var helper = new THREE.SkeletonHelper(object);
+    // helper.material.linewidth = 3;
+    // scene.add(helper);
     scene.add(object);
-    const b = getBone("LeftUpperLeg");
+    const b = getBone("mixamorigLeftUpLeg");
     b[0].rotation.set(0, 0, Math.PI / 4);
-    const c = getBone("LeftLowerLeg");
-    c[0].rotation.set(0, 0, -Math.PI / 4);
+    // const c = getBone("LeftLowerLeg");
+    // c[0].rotation.set(0, 0, -Math.PI / 4);
   });
-
-  // sun = new Astro(1, 10, 0, 0, "src/textures/selena.jpg", false, true);
-  // const moon = new Astro(0.5, 2, 5, 5, "src/textures/selena.jpg", true);
-  // const a = new Astro(0.3, 3, 2, 2, "src/textures/selena.jpg");
-  // const b = new Astro(0.1, -1, 1, 1, "src/textures/selena.jpg");
-  // a.addOrbiter(b);
-  // moon.addOrbiter(a);
-  // sun.addOrbiter(moon);
-
-  // scene.add(sun);
 
   renderer.setAnimationLoop(animationLoop)
 });
