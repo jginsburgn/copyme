@@ -3,6 +3,7 @@ let scene = undefined;
 let camera = undefined;
 let absoluteAccumulatedTime = 0;
 let robot = undefined;
+let angles = undefined;
 
 $(function () {
   const { width, height } = getWidthAndHeight();
@@ -21,21 +22,21 @@ $(function () {
   $("#canvas-container").append(renderer.domElement);
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color( 0xa0a0a0 );
-  scene.fog = new THREE.Fog( 0xa0a0a0, 200, 1000 );
+  scene.background = new THREE.Color(0xa0a0a0);
+  scene.fog = new THREE.Fog(0xa0a0a0, 200, 1000);
 
-  light = new THREE.HemisphereLight( 0xffffff, 0x444444 );
-  light.position.set( 0, 200, 0 );
-  scene.add( light );
+  light = new THREE.HemisphereLight(0xffffff, 0x444444);
+  light.position.set(0, 200, 0);
+  scene.add(light);
 
-  light = new THREE.DirectionalLight( 0xffffff );
-  light.position.set( 0, 200, 100 );
+  light = new THREE.DirectionalLight(0xffffff);
+  light.position.set(0, 200, 100);
   light.castShadow = true;
   light.shadow.camera.top = 180;
   light.shadow.camera.bottom = - 100;
   light.shadow.camera.left = - 120;
   light.shadow.camera.right = 120;
-  scene.add( light );
+  scene.add(light);
 
   // light = new THREE.HemisphereLight(0xffffff, 0x444444, 10);
   // light.position.set(0, 100, 0);
@@ -68,17 +69,20 @@ $(function () {
     // helper.material.linewidth = 3;
     // scene.add(helper);
     scene.add(object);
-    const b = getBone("mixamorigLeftUpLeg");
-    b[0].rotation.set(0, 0, Math.PI / 4);
     // const c = getBone("LeftLowerLeg");
     // c[0].rotation.set(0, 0, -Math.PI / 4);
+    renderer.setAnimationLoop(animationLoop);
   });
-
-  renderer.setAnimationLoop(animationLoop)
 });
 
 function animationLoop(accumulatedTime) {
   const timeDifference = accumulatedTime - absoluteAccumulatedTime;
+  if (angles) {
+    const rightForeArm = getBone("mixamorigRightForeArm");
+    rightForeArm[0].rotation.set(0, 0, angles.leftElbow - Math.PI);
+    const leftForeArm = getBone("mixamorigLeftForeArm");
+    leftForeArm[0].rotation.set(0, 0, angles.rightElbow - Math.PI);
+  }
   absoluteAccumulatedTime = accumulatedTime;
   renderer.render(scene, camera);
 }
@@ -93,7 +97,6 @@ function getBone(name) {
   let retVal = [];
   robot.traverse(function (child) {
     if (child instanceof THREE.Bone) {
-      console.log(child.name, name);
       if (child.name == name) {
         retVal.push(child);
         return;
