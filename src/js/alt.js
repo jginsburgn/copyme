@@ -259,7 +259,9 @@ $(function () {
         ctx.restore();
       }
 
-      angles = getAngles(pose);
+      if (pose.score > 0.85) {
+        angles = getAngles(pose);
+      }
 
       // For each pose (i.e. person) detected in an image, loop through the poses
       // and draw the resulting skeleton and keypoints if over certain confidence
@@ -295,8 +297,11 @@ $(function () {
   function angleBetweenVecs(a, b, c) {
     const aToB = b.clone().sub(a);
     const bToC = c.clone().sub(b);
-    const angle = Math.PI - aToB.angle() + bToC.angle();
-    console.log(aToB, bToC, angle * 180 / Math.PI);
+    const alpha = aToB.angle();
+    const beta = bToC.angle();
+    console.log(alpha * 180 / Math.PI, beta * 180 / Math.PI);
+    const angle = beta - alpha;
+    console.log(angle * 180 / Math.PI);
     return angle;
   }
 
@@ -328,10 +333,20 @@ $(function () {
     }
 
     const angles = {
+      rightShoulder: angleBetweenVecs(
+        v.leftShoulder,
+        v.rightShoulder,
+        v.rightElbow
+      ),
       rightElbow: angleBetweenVecs(
         v.rightShoulder,
         v.rightElbow,
         v.rightWrist
+      ),
+      leftShoulder: angleBetweenVecs(
+        v.rightShoulder,
+        v.leftShoulder,
+        v.leftElbow
       ),
       leftElbow: angleBetweenVecs(
         v.leftShoulder,

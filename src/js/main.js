@@ -78,10 +78,16 @@ $(function () {
 function animationLoop(accumulatedTime) {
   const timeDifference = accumulatedTime - absoluteAccumulatedTime;
   if (angles) {
-    const rightForeArm = getBone("mixamorigRightForeArm");
-    rightForeArm[0].rotation.set(0, 0, angles.leftElbow - Math.PI);
+
+    const leftArm = getBone("mixamorigLeftArm");
+    leftArm[0].rotation.set(0, 0, angles.rightShoulder);
     const leftForeArm = getBone("mixamorigLeftForeArm");
-    leftForeArm[0].rotation.set(0, 0, angles.rightElbow - Math.PI);
+    leftForeArm[0].rotation.set(0, 0, angles.rightElbow);
+
+    const rightArm = getBone("mixamorigRightArm");
+    rightArm[0].rotation.set(0, 0, angles.leftShoulder);
+    const rightForeArm = getBone("mixamorigRightForeArm");
+    rightForeArm[0].rotation.set(0, 0, angles.leftElbow);
   }
   absoluteAccumulatedTime = accumulatedTime;
   renderer.render(scene, camera);
