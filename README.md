@@ -1,8 +1,8 @@
 # Three.js Seed and Selena Solar System
 
-#### https://jginsburgn.github.io/threejs-seed/
+#### https://jginsburgn.github.io/copyme/
 
-This project is intended to be a quick seed for Three.js projects.
+This project that merges [PoseNet](https://github.com/tensorflow/tfjs-models/tree/master/posenet) and [Three.js](https://threejs.org/) to make a 3D model copy your moves.
 
 ## How to Run It?
 
@@ -10,7 +10,7 @@ Fire up a web server and point its document root to the directory containing `in
 
 ## How to use it?
 
-You can really just use it out of the box. Maybe create your own object classes like `Astro`. It is important to consider that the perspective camera has been approximated to reality, considering a person sitting in front of his computer screen and that **spacial dimensions are in meters**.
+Focus a single person in the camera frame and see how the model copies your moves.
 
 ## License
 
