@@ -21,9 +21,10 @@ $(function () {
 
   // import { drawBoundingBox, drawKeypoints, drawSkeleton } from './demo_util';
 
-  const videoWidth = 600;
-  const videoHeight = 500;
+  // const videoWidth = 600;
+  // const videoHeight = 500;
   // const stats = new Stats();
+  const videoDisplayWidth = 1000;
 
   function isAndroid() {
     return /Android/i.test(navigator.userAgent);
@@ -47,19 +48,26 @@ $(function () {
         'Browser API navigator.mediaDevices.getUserMedia not available');
     }
 
-    const video = document.getElementById('video');
-    video.width = videoWidth;
-    video.height = videoHeight;
 
     const mobile = isMobile();
     const stream = await navigator.mediaDevices.getUserMedia({
       'audio': false,
       'video': {
         facingMode: 'user',
-        width: mobile ? undefined : videoWidth,
-        height: mobile ? undefined : videoHeight,
+        width: { ideal: 4096 },
+        height: { ideal: 2160 } 
       },
     });
+    const videoSettings = stream.getVideoTracks()[0].getSettings();
+    const video = document.getElementById('video');
+    // videoWidth = videoSettings.width;
+    // videoHeight = videoSettings.height;
+    videoWidth = video.width = videoDisplayWidth;
+    videoHeight = video.height = Math.ceil(videoDisplayWidth * videoSettings.height / videoSettings.width);
+    up = new THREE.Vector2(videoWidth / 2, videoHeight);
+    down = new THREE.Vector2(videoWidth / 2, 0);
+    left = new THREE.Vector2(0, videoHeight / 2);
+    right = new THREE.Vector2(videoWidth, videoHeight / 2);
     video.srcObject = stream;
 
     return new Promise((resolve) => {
@@ -198,13 +206,13 @@ $(function () {
    * happens. This function loops with a requestAnimationFrame method.
    */
   function detectPoseInRealTime(video, net) {
-    const canvas = document.getElementById('output');
-    const ctx = canvas.getContext('2d');
-    // since images are being fed from a webcam
+    // const canvas = document.getElementById('output');
+    // const ctx = canvas.getContext('2d');
+    // // since images are being fed from a webcam
     const flipHorizontal = false;
 
-    canvas.width = videoWidth;
-    canvas.height = videoHeight;
+    // canvas.width = videoWidth;
+    // canvas.height = videoHeight;
 
     async function poseDetectionFrame() {
       if (guiState.changeToArchitecture) {
@@ -249,14 +257,14 @@ $(function () {
           break;
       }
 
-      ctx.clearRect(0, 0, videoWidth, videoHeight);
+      // ctx.clearRect(0, 0, videoWidth, videoHeight);
 
       if (guiState.output.showVideo) {
-        ctx.save();
-        ctx.scale(-1, 1);
-        ctx.translate(-videoWidth, 0);
-        ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
-        ctx.restore();
+        // ctx.save();
+        // ctx.scale(-1, 1);
+        // ctx.translate(-videoWidth, 0);
+        // ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+        // ctx.restore();
       }
 
       if (pose.score > 0.85) {
@@ -291,7 +299,24 @@ $(function () {
 
   function keypointToVector(keypoint) {
     const position = keypoint.position;
-    return new THREE.Vector2(-position.x, -position.y);
+    return new THREE.Vector2(videoWidth - position.x, videoHeight - position.y);
+  }
+
+  function midPoint(...vectors) {
+    const x = vectors.reduce((previousValue, currentValue, currentIndex, array) => {
+      if (currentIndex == array.length - 1) {
+        return (previousValue + currentValue.x) / array.length;
+      }
+      return previousValue + currentValue.x;
+    }, 0);
+    const y = vectors.reduce((previousValue, currentValue, currentIndex, array) => {
+      if (currentIndex == array.length - 1) {
+        return (previousValue + currentValue.y) / array.length;
+      }
+      return previousValue + currentValue.y;
+    }, 0);
+    // console.log(x, y);
+    return new THREE.Vector2(x, y);
   }
 
   function angleBetweenVecs(a, b, c) {
@@ -299,9 +324,9 @@ $(function () {
     const bToC = c.clone().sub(b);
     const alpha = aToB.angle();
     const beta = bToC.angle();
-    console.log(alpha * 180 / Math.PI, beta * 180 / Math.PI);
+    // console.log(alpha * 180 / Math.PI, beta * 180 / Math.PI);
     const angle = beta - alpha;
-    console.log(angle * 180 / Math.PI);
+    // console.log(angle * 180 / Math.PI);
     return angle;
   }
 
@@ -332,6 +357,12 @@ $(function () {
       v[keys[keyPos]] = keypointToVector(pose.keypoints[keyPos]);
     }
 
+    const ankleCenter = midPoint(v.leftAnkle, v.rightAnkle);
+    const hipCenter = midPoint(v.leftHip, v.rightHip);
+    const shoulderCenter = midPoint(v.leftShoulder, v.rightShoulder);
+    const aboveHip = hipCenter.clone().setY(videoHeight);
+    const belowHip = hipCenter.clone().setY(0);
+
     const angles = {
       rightShoulder: angleBetweenVecs(
         v.leftShoulder,
@@ -352,6 +383,36 @@ $(function () {
         v.leftShoulder,
         v.leftElbow,
         v.leftWrist
+      ),
+      neck: angleBetweenVecs(
+        hipCenter,
+        shoulderCenter,
+        v.nose
+      ),
+      spine: angleBetweenVecs(
+        belowHip,
+        hipCenter,
+        shoulderCenter
+      ),
+      rightLeg: angleBetweenVecs(
+        aboveHip,
+        v.rightHip,
+        v.rightKnee
+      ),
+      leftLeg: angleBetweenVecs(
+        aboveHip,
+        v.leftHip,
+        v.leftKnee
+      ),
+      rightKnee: angleBetweenVecs(
+        v.rightHip,
+        v.rightKnee,
+        v.rightAnkle
+      ),
+      leftKnee: angleBetweenVecs(
+        v.leftHip,
+        v.leftKnee,
+        v.leftAnkle
       ),
     };
 

@@ -88,7 +88,25 @@ function animationLoop(accumulatedTime) {
     rightArm[0].rotation.set(0, 0, angles.leftShoulder);
     const rightForeArm = getBone("mixamorigRightForeArm");
     rightForeArm[0].rotation.set(0, 0, angles.leftElbow);
+
+    const neck = getBone("mixamorigNeck");
+    neck[0].rotation.set(0, 0, angles.neck);
+
+    const spine = getBone("mixamorigSpine");
+    spine[0].rotation.set(0, 0, angles.spine);
+
+    const rightUpLeg = getBone("mixamorigRightUpLeg");
+    rightUpLeg[0].rotation.set(0, 0, angles.leftLeg - Math.PI / 16);
+    const leftUpLeg = getBone("mixamorigLeftUpLeg");
+    leftUpLeg[0].rotation.set(0, 0, angles.rightLeg + Math.PI / 16);
+
+    const rightLowLeg = getBone("mixamorigRightLeg");
+    rightLowLeg[0].rotation.set(0, 0, angles.leftKnee);
+    const leftLowLeg = getBone("mixamorigLeftLeg");
+    leftLowLeg[0].rotation.set(0, 0, angles.rightKnee);
   }
+  // const hips = getBone("mixamorigLeftUpLeg");
+  // hips[0].rotation.set(0, 0, Math.PI / 4);
   absoluteAccumulatedTime = accumulatedTime;
   renderer.render(scene, camera);
 }
