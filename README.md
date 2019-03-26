@@ -1,4 +1,4 @@
-# Three.js Seed and Selena Solar System
+# Copyme
 
 #### https://jginsburgn.github.io/copyme/
 
